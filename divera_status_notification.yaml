@@ -1,0 +1,64 @@
+blueprint:
+  name: Fahrzeug Statusänderung Benachrichtigung
+  description: Benachrichtigt bei Statusänderung eines Fahrzeugsensors (z.B. LF/MTF).
+  domain: automation
+  input:
+    fahrzeuge:
+      name: Fahrzeuge (Sensoren)
+      description: Sensoren, die den Fahrzeugstatus enthalten.
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: sensor
+    notify_devices:
+      name: Geräte
+      description: Liste der Geräte, die eine Benachrichtigung erhalten sollen.
+      selector:
+        device:
+          filter:
+            - integration: mobile_app
+          multiple: true
+    notification_title:
+      name: Benachrichtigungs-Titel
+      description: Titel der Benachrichtigung, nutze {fahrzeug} für den Namen.
+      default: "Statusänderung {fahrzeug}"
+      selector:
+        text:
+    notification_message:
+      name: Benachrichtigungs-Text
+      description: Text der Benachrichtigung; nutze {fahrzeug} für den Namen und {status} für den neuen Wert.
+      default: "Status von {fahrzeug} hat sich auf {status} geändert."
+      selector:
+        text:
+          multiline: true
+
+variables:
+  notify_devices: !input notify_devices
+  notification_title: !input notification_title
+  notification_message: !input notification_message
+
+trigger:
+  - trigger: state
+    entity_id: !input fahrzeuge
+
+action:
+  - alias: "Send a notification to each device"
+    repeat:
+      for_each: !input notify_devices
+      sequence:
+        - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify }}"
+          data:
+            title: >-
+              {{
+                notification_title
+                  |replace('{fahrzeug}', trigger.to_state.name)
+              }}
+            message: >-
+              {{
+                notification_message
+                  |replace('{fahrzeug}', trigger.to_state.name)
+                  |replace('{status}', trigger.to_state.state)
+              }}
+
+mode: single
