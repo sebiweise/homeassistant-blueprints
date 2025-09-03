@@ -48,7 +48,7 @@ condition:
       - condition: not
         conditions:
           - condition: state
-            entity_id: "{{ trigger.entity_id }}"
+            entity_id: !input fahrzeuge
             state: "unavailable"
       - condition: not
         conditions:
