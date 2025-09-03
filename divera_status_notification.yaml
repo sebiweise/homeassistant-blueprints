@@ -27,7 +27,7 @@ blueprint:
         text:
     notification_message:
       name: Benachrichtigungs-Text
-      description: Text der Benachrichtigung; nutze {fahrzeug} für den Namen und {status} für den neuen Wert.
+      description: Text der Benachrichtigung; nutze {fahrzeug} für den Namen, {status} für den neuen Wert und {old_status} für den vorherigen Wert.
       default: "Status von {fahrzeug} hat sich auf {status} geändert."
       selector:
         text:
@@ -72,6 +72,7 @@ action:
                 notification_message
                   |replace('{fahrzeug}', trigger.to_state.name)
                   |replace('{status}', trigger.to_state.state)
+                  |replace('{old_status}', trigger.from_state.state)
               }}
 
 mode: single
